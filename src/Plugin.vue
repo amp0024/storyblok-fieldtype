@@ -1,63 +1,68 @@
 <template>
   <div>
-    Google snippet preview:
-    <div class="p-metatags__preview">
-      <div class="p-metatags__google-title">{{ model.title }}</div>
-      <div class="p-metatags__google-link">yoursite.com/example</div>
-      <div class="p-metatags__google-description">{{ model.description }}</div>
-    </div>
-    <div class="uk-form-row">
-      <label>SEO Title</label>
-      <input type="text" v-model="model.title" class="uk-width-1-1">
-    </div>
 
-    <div class="uk-form-row">
-      <label>Meta description</label>
-      <textarea rows="4" v-model="model.description" class="uk-width-1-1"></textarea>
+   <image-upload v-model="model.image"></image-upload>
+    <div class="blok__comp-container uk-margin-top">
+     <image-detail
+         v-for="(detail, index) in model.details"
+         :key="index"
+         :augmented-image="model.image"
+         v-model="model.details[index]"
+         @remove="removeDetail(index)"
+       ></image-detail>
     </div>
+    <a
+      class="blok__full-btn uk-margin-small-top uk-margin-bottom-remove"
+      @click="addDetail">
+      <i class="uk-icon-plus-circle uk-margin-small-right"> Add detail</i>
+    </a>
   </div>
 </template>
 
 <script>
+import ImageDetail from './ImageDetail.vue';
+import ImageUpload from './ImageUpload.vue';
 export default {
+  components: {
+    ImageDetail,
+    ImageUpload,
+  },
   mixins: [window.Storyblok.plugin],
+  // We provide the current instance
+  // to all of the parent components.
+  provide() {
+    return {
+      plugin: this,
+    };
+  },
+  watch: {
+    model: {
+      handler(value) {
+        this.$emit('changed-model', value);
+      },
+      deep: true,
+    },
+  },
   methods: {
     initWith() {
       return {
-        plugin: 'my-plugin-name',
-        title: 'Your title',
-        description: 'Your description'
-      }
+        details: [],
+        image: '',
+        plugin: 'augmented-image2',
+      };
     },
-    pluginCreated() {
-      console.log('plugin:created')
-    }
+    addDetail() {
+      this.model.details.push({
+        image: '',
+        text: '',
+        title: '',
+        x: 0,
+        y: 0,
+      });
+    },
+    removeDetail(index) {
+      this.model.details = this.model.details.filter((_, i) => i !== index);
+    },
   },
-  watch: {
-    'model': {
-      handler: function (value) {
-        this.$emit('changed-model', value);
-      },
-      deep: true
-    }
-  }
-}
+};
 </script>
-
-<style>
-  .p-metatags__google-title {
-    color: blue;
-    text-decoration: underline;
-  }
-
-  .p-metatags__google-link {
-    color: green;
-  }
-
-  .p-metatags__preview {
-    margin: 5px 0 15px;
-    padding: 10px;
-    color: #000;
-    background: #FFF;
-  }
-</style>
